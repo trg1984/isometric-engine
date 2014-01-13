@@ -1,0 +1,487 @@
+﻿<html>
+	<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Isometric-testi</title>
+		<script type='text/javascript' src='javascript/jquery-1.10.2.js'></script>
+        <script type='text/javascript' src='javascript/jquery-ui.min.js'></script>
+		<script type = "application/x-javascript">		
+			
+			// Copyright to all of the code Rolf Lindén (rolind@utu.fi) 2011-2013. All rights reserved.
+			
+			// Initialize.
+			var mRight = false;
+			var mLeft = false;
+			var map;
+			var tileWidth = 100;
+			var tileHeight = 65;
+			var tileSpacingWidth = 100
+			var tileSpacingHeight = 65;
+			var tiles = true;
+			var toolTile = 2;
+			var toolSize = 0;
+			var mouseX = 0;
+			var mouseY = 0;
+			var mTileX = 0;
+			var mTileY = 0;
+			var ux = 0;
+			var uy = 0;
+			var dx = 0;
+			var dy = 0;
+			var t =  0; 
+			var currentTile =  0; 
+			var timer_is_on = 0;
+			var offsetX;
+			var offsetY;
+			var sprites;
+			var update = true;
+			var animate = false;
+			var keys = new Array(255);
+			
+			var imgList = [
+                'bridgeEast.png'      ,'lotExitEast.png'   ,'treeConiferShort.png',
+                'bridgeNorth.png'     ,'lotExitNorth.png'  ,'treeConiferTall.png',
+                'crossroad.png'       ,'lotExitSouth.png'  ,'treeShort_autumn.png',
+                'dirtHigh.png'        ,'lotExitWest.png'   ,'treeShort.png',
+                'dirt.png'            ,'lotNorth.png'      ,'treeTall_autumn.png',
+                'grass.png'           ,'lotPark.png'       ,'treeTall.png',
+                'hillCornerEast.png'  ,'lot.png'           ,'waterBeachCornerEast.png',
+                'hillCornerNW.png'    ,'lotSouth.png'      ,'waterBeachCornerNorth.png',
+                'hillCornerSE.png'    ,'lotWest.png'       ,'waterBeachCornerSouth.png',
+                'hillCornerWest.png'  ,'roadCornerES.png'  ,'waterBeachCornerWest.png',
+                'hillEast.png'        ,'roadCornerNE.png'  ,'waterBeachEast.png',
+                'hillNorth.png'       ,'roadCornerNW.png'  ,'waterBeachNorth.png',
+                'hillRoadEast.png'    ,'roadCornerWS.png'  ,'waterBeachSouth.png',
+                'hillRoadNorth.png'   ,'roadEast.png'      ,'waterBeachWest.png',
+                'hillRoadSouth.png'   ,'roadEndEast.png'   ,'waterCornerEast.png',
+                'hillRoadWest.png'    ,'roadEndNorth.png'  ,'waterCornerNorth.png',
+                'hillSouth.png'       ,'roadEndSouth.png'  ,'waterCornerSouth.png',
+                'hillWest.png'        ,'roadEndWest.png'   ,'waterCornerWest.png',
+                'lotCornerEast.png'   ,'roadNorth.png'     ,'waterEast.png',
+                'lotCornerNorth.png'  ,'roadTEast.png'     ,'waterNorth.png',
+                'lotCornerSouth.png'  ,'roadTNorth.png'    ,'water.png',
+                'lotCornerWest.png'   ,'roadTSouth.png'    ,'waterSouth.png',
+                'lotEast.png'         ,'roadTWest.png'     ,'waterWest.png'
+            ];
+			
+            Player = function(x, y, z, spriteIndex) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.sprite = spriteIndex;
+            }
+			
+			var img = new Array();
+			for (var item in imgList) {
+                var temp = new Image();
+                this.isLoaded = false;
+                temp.src = 'images/roadTiles_v2/png/' + imgList[item];
+                console.debug(temp.src + ' added.');
+                temp.onload = function() {
+                    this.isLoaded = true;
+                    window.console.debug(this.src + ' is loaded.');
+                    $(this).click(function() {currentTile = imgList.indexOf(this.src.substring(this.src.lastIndexOf('/')+1)); });
+                    $('.palette').append(this);
+                }
+                img[item] = temp;
+            }
+			var cursor = new Image();
+			var bg = new Image();
+			
+			cursor.src = 'images/warcraft2orcCursor.gif';
+			bg.src = 'images/sky-clouds-2560x1920-hd-wallpaper-jootix-wallpapers-x-c-ibackgroundz.com.jpg';//'images/abstract-pattern-hd-wallpaper.jpg';
+			function isoConvert (x, y) {
+				var i = (x - offsetX) / tileWidth + (y - offsetY) / (tileHeight - 15);
+				var j = i - 2 * (x - offsetX) / tileWidth;
+				/*
+				x = (i - j) * tileWidth / 2 + offsetX
+				(x - offsetX) * 2 / tileWidth = i - j
+				
+				y = (i + j) * (tileHeight - 15) / 2 + offsetY
+				(y - offsetY) * 2 / (tileHeight - 15) = i + j
+				
+				(x - offsetX) * 2 / tileWidth + (y - offsetY) * 2 / (tileHeight - 15) = 2*i
+				i = (x - offsetX) / tileWidth + (y - offsetY) / (tileHeight - 15)
+				*/
+				return [i, j];
+			}
+			
+			function xyToIso(i, j) {
+                var x = (i - j) * tileWidth / 2 + offsetX;
+                var y = (i + j) * (tileHeight - 15) / 2 + offsetY;
+                return [x, y];
+			}
+			
+			function draw(m) {
+				var canvas = document.getElementById('example');
+				var ctx = canvas.getContext('2d'); 
+				ctx.mozImageSmoothingEnabled = false;
+								
+				// Draw the map.
+
+				ctx.fillStyle = "rgb(50,130,255)";
+				
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				//
+				
+				//if (bg.width > 0) ctx.drawImage(bg, canvas.width / 2 - bg.width / 2, canvas.height / 2 - bg.height / 2);
+				//else ctx.fillRect(0, 0, canvas.width, canvas.height);
+				
+				ctx.fillStyle    = '#fff';
+				
+				// Calculate the corner points.
+				var floorArray = function(val, ind, arr) { arr[ind] = Math.floor(val) };
+				var P1 = isoConvert(0, 0);                        P1.forEach(floorArray);
+				var P2 = isoConvert(canvas.width, 0);             P2.forEach(floorArray);
+				var P3 = isoConvert(0, canvas.height);            P3.forEach(floorArray);
+				var P4 = isoConvert(canvas.width, canvas.height); P4.forEach(floorArray);
+				
+				// Just to make things pretty -- boundaries for y-interval.
+				var y0 = Math.min(Math.max(y0 = P2[1], 0), m.height - 1);
+				var y1 = Math.min(Math.max(y1 = P3[1] + 1, 0), m.height - 1);
+				
+				for (var j = y0; j <= y1; ++j) {
+				
+                    // Calculate the positions relative to different boundary conditions.
+                    var r1 = (j - P2[1]) / (P1[1] - P2[1]); // Top
+                    var r2 = (j - P1[1]) / (P3[1] - P1[1]); // Left
+                    var r3 = (j - P2[1]) / (P4[1] - P2[1]); // Right
+                    var r4 = (j - P4[1]) / (P3[1] - P4[1]); // Bottom
+                    
+                    
+                    // TODO Include z-value of the item in the conciderations.
+                    // Calculate the x-interval boundaries x0 and x1.
+                    var x0 = Math.min(Math.max(Math.floor( (j <= P1[1]) ? r1 * (P1[0] - P2[0]) + P2[0] : r2 * (P3[0] - P1[0]) + P1[0] ) - 2, 0), m.width - 1);
+                    var x1 = Math.min(Math.max(Math.ceil( (j <= P4[1]) ? r3 * (P4[0] - P2[0]) + P2[0] : r4 * (P3[0] - P4[0]) + P4[0] ) + 1, 0), m.width - 1);
+                    
+                    //if (x0 >= x1) console.debug('x', P1, P2, P3, P4, y0, y1, j, x0, x1, r1, r2, r3, r4)
+                    
+                    for (var i = x0; i <= x1; ++i) {  
+                    
+                        {//if ((j >= 0) && (i >= 0) && (i < m.width) && (j < m.height)) {
+                            
+                            //var x1 = m.cell[j * m.width + i];
+                            //var y1 = Math.floor(m.cell[j * m.width + i]);
+                            var iso = xyToIso(i, j);
+                            /*if ( 
+                                (j * m.width + i >= 0) && 
+                                (j * m.width + i < m.cell.length) && 
+                                (typeof(img[ m.cell[j * m.width + i] ]) !== 'undefined') &&
+                                (img[ m.cell[j * m.width + i] ].isLoaded)
+                               )*/
+                               /*if (img[0].isLoaded)
+                                ctx.drawImage(
+                                cursor,
+                                (x1 * tileSpacingWidth) || 0,
+                                (y1 * tileSpacingHeight) || 0,
+                                tileWidth || 0,
+                                tileHeight || 0,
+                                iso[0] || 0,
+                                iso[1] || 0,
+                                tileWidth || 0,
+                                tileHeight || 0
+                            );*/
+                            
+                            if (
+                                ( typeof(img[ m.cell[j * m.width + i] ]) !== 'undefined' ) &&
+                                img[ m.cell[j * m.width + i] ].isLoaded
+                               ) {
+                                ctx.drawImage(img[ m.cell[j * m.width + i] ], iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
+                                
+                            //ctx.fillText  ('(' + i + ', ' + j + ')', (i - j + 0.6) * tileWidth / 2 + offsetX, (i + j + 0.75) * (tileHeight - 15) / 2 + offsetY - m.z[j * m.width + i]);
+                            }
+                        }
+                    }
+                }
+                var coords = isoConvert(mouseX, mouseY - tileHeight / 2);
+                coords[0] = Math.floor(coords[0]) + 0.5;
+                coords[1] = Math.floor(coords[1]) + 0.5;
+                mTileX = Math.floor(coords[0]);
+                mTileY = Math.floor(coords[1] + 1);
+                ctx.beginPath();
+                ctx.strokeStyle = '#2f2';
+                
+                //ctx.rect(mTileX * tileWidth + offsetX, mTileY * tileHeight + offsetY, tileWidth, tileHeight);
+                ctx.moveTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); ++coords[0];
+                ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); ++coords[1];
+                ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); --coords[0];
+                ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); --coords[1];
+                ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0);
+                ctx.stroke();
+                
+                ctx.drawImage(cursor, mouseX, mouseY);
+                
+                ctx.fillStyle    = '#fff';
+                ctx.font         = '12px sans-serif';
+                ctx.textBaseline = 'top';
+                // Indicate that the mouse button is down.
+                if (mRight) {
+                    ctx.fillText  ('Mouse down.', 20, 50);
+                    ctx.fillText  ('Down (x, y): (' + dx + ', '+ dy + ').', 20, 65);
+                }
+                else ctx.fillText  ('Mouse up.', 20, 50);
+                
+                ctx.fillText  ('Coordinates (x, y): (' + mouseX + ', '+ mouseY + ').', 20, 20);
+                ctx.fillText  ('Offset (x, y): (' + offsetX + ', '+ offsetY + ').', 20, 35);
+                ctx.fillText  ('Tile (x, y, ind): (' + (mTileX) + ', '+ (mTileY) + ', ' + ((mTileX >= 0) && (mTileX < m.width) && (mTileY >= 0) && (mTileY < m.height) ? m.cell[mTileY * m.width + mTileX] : 'NaN') + ').', 20, 80);
+                update = false;
+			}
+			
+			function toggleTiles() {
+				tiles = !tiles;
+				update = true;
+			}
+			
+			function setToolTile(n) { toolTile = n; }
+			
+			function setToolSize(n) { toolSize = n; }
+			
+			function initMap(m) {
+				for (var i = 0; i < m.width; i++) {  
+					for (var j = 0; j < m.height; j++) {
+						var x0 = Math.round(Math.random() * 18);
+						var y0 = Math.round(Math.random() * 18);
+						m.cellType[j * m.width + i] = 0;
+					}  
+				}  
+				for (var i = 0; i < m.width; i++)   
+					for (var j = 0; j < m.height; j++) {
+						setGraphics(m, i, j, 15);
+						m.z[j * m.width + i] = 0;
+				}
+				/*
+				temp = JSON.parse("{\"width\":14,\"height\":14,\"cell\":[15,15,15,15,15,15,39,39,39,39,34,15,38,62,15,15,15,15,15,37,55,42,42,42,31,15,20,62,15,15,15,15,27,45,21,15,15,15,15,15,15,38,15,15,15,52,48,40,33,37,55,34,50,68,53,38,15,60,63,64,42,31,33,40,15,40,65,62,59,20,15,13,7,61,24,30,18,40,15,40,44,56,47,15,15,13,7,6,55,55,55,31,15,64,55,55,34,15,15,13,7,31,15,15,15,15,60,1,63,15,40,15,15,54,57,15,15,15,15,-2,54,25,57,15,40,15,15,15,60,66,66,63,27,21,15,15,15,15,40,15,15,15,13,16,16,7,42,39,55,55,55,55,31,15,15,15,54,25,25,57,24,18,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,39,null,null,null,null,null,null,null,null,null],\"z\":[0,0,0,0,0,0,106,91,76,61,46,0,0,-2,0,0,0,0,0,0,0,1,16,31,46,0,0,-2,0,0,0,0,-1,0,0,-1,-1,-1,-1,0,0,0,0,0,0,0,0,15,15,0,0,0,0,0,0,0,0,0,0,0,0,15,15,0,0,0,0,-2,-2,0,0,0,0,0,0,15,15,0,0,0,0,-2,-2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"cellType\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}");
+				console.debug(temp);
+				m.cell = temp.cell;
+				m.z = temp.z;
+				*/
+				var canvas = document.getElementById('example');
+				
+				offsetX = screen.width / 2 - tileWidth / 2;
+				offsetY = screen.height / 2 - m.height / 2 * tileHeight;
+			}
+			
+			function Map(w, h) {
+				this.width = w;
+				this.height = h;
+				this.cell = new Array(this.width * this.height);
+				this.z = new Array(this.width * this.height);
+				this.cellType = new Array(this.width * this.height);
+			}
+				
+			function setGraphics(map, x, y, value) {
+				if (y * map.width + x < 0) return;
+				if (y * map.width + x >= map.cell.length) return;
+				
+				map.cell[y * map.width + x] = value;
+			}
+			
+			function isIn(item, list) {
+				var it = list.length;
+				while (it--) if (item == list[it]) return true;
+				return false;
+			}
+
+			function checkOffset() {
+				var canvas = document.getElementById('example');
+				//if (offsetX < -tileWidth * (map.width - 1) + canvas.width)
+				//	offsetX = -tileWidth * (map.width - 1) + canvas.width;
+				//if (offsetY < -tileHeight * (map.height - 1) + canvas.height)
+				//	offsetY = -tileHeight * (map.height - 1) + canvas.height;
+				
+				//if (offsetX > -2 * tileWidth) offsetX = -2 * tileWidth;
+				//if (offsetY > -2 * tileHeight) offsetY = -2 * tileHeight;
+			}
+			
+			function mwheel(ev) {
+                ev = window.event || ev; // old IE support
+                var delta = Math.max(-1, Math.min(1, (ev.wheelDelta || -ev.detail)));
+                
+                console.debug('mwheel', delta);
+                if (keys[90]) map.z[mTileY * map.width + mTileX] += delta;
+                else map.cell[mTileY * map.width + mTileX] += delta;
+                update = true;
+            }
+			
+			function mmove(ev) {
+                
+				var canvas = document.getElementById('example');
+				
+				if (ev.layerX || ev.layerX == 0) { // Firefox
+					ev._x = ev.layerX - canvas.offsetLeft;
+					ev._y = ev.layerY - canvas.offsetTop - 1;
+				} else if (ev.offsetX || ev.offsetX == 0) { // Opera
+					ev._x = ev.offsetX - canvas.offsetLeft;
+					ev._y = ev.offsetY - canvas.offsetTop - 1;
+				}				
+				  
+				if (mRight) {
+					offsetX += ev._x - mouseX;
+					offsetY += ev._y - mouseY; 
+					checkOffset();
+				}
+				mouseX = ev._x;
+				mouseY = ev._y;
+				
+				var coords = isoConvert(mouseX, mouseY - tileHeight / 2);
+                coords[0] = Math.floor(coords[0]) + 0.5;
+                coords[1] = Math.floor(coords[1]) + 0.5;
+                mTileX = Math.floor(coords[0]);
+                mTileY = Math.floor(coords[1] + 1);
+				
+				if (mLeft) {
+                    if (keys[67]) currentTile = map.cell[mTileY * map.width + mTileX];
+                    else map.cell[mTileY * map.width + mTileX] = currentTile;
+                }
+				
+                update = true;
+			}
+			
+			function buttonsUp() { mLeft = mRight = false; }
+	
+			function resizeWindow() {
+				// Set window size.
+				var winW = 630, winH = 460;
+				if (document.body && document.body.offsetWidth) {
+					winW = document.body.offsetWidth;
+					winH = document.body.offsetHeight;
+				}
+				if (document.compatMode=='CSS1Compat' &&
+					document.documentElement &&
+					document.documentElement.offsetWidth ) {
+					winW = document.documentElement.offsetWidth;
+					winH = document.documentElement.offsetHeight;
+				}
+				if (window.innerWidth && window.innerHeight) {
+					winW = window.innerWidth;
+					winH = window.innerHeight;
+				}
+				
+				var canvas = document.getElementById('example');
+				canvas.width = winW;
+				canvas.height = winH;
+				
+				$('.palette').height($(window).height() - 10);
+				
+				checkOffset();
+				
+				// Fill the canvas.
+				update = true;
+			}
+			
+			function kDown(key) {
+				/* key down events here */
+				key = key.keyCode || key;
+				console.debug(key + ' down,');
+				keys[key] = true;
+			}
+			
+			function kUp(key) {
+                /* key down events here */
+                key = key.keyCode || key;
+                console.debug(key + ' up,');
+                keys[key] = false;
+            }
+			
+			function init() {
+				map = new Map(500, 500);
+				initMap(map);
+				
+                var canvas = document.getElementById('example');
+                
+                // Attach the mousedown, mousemove and mouseup event listeners.
+                canvas.addEventListener('mousedown', mdown, false);
+                canvas.addEventListener('mousemove', mmove, false);
+                canvas.addEventListener('mouseup',   mup, false);
+                canvas.addEventListener('keydown',  kDown, false);
+                canvas.addEventListener('keyup',  kUp, false);
+                
+                canvas.addEventListener("mousewheel", mwheel, false);
+                canvas.addEventListener("DOMMouseScroll", mwheel, false);
+				
+				$(canvas).focus();
+				
+				resizeWindow();
+				doTimer();
+			}
+			
+			function mdown(ev) {
+				var l = false;
+				var r = false;
+				if (ev.which) l = ev.which == 1;
+				else if (ev.button) l = ev.button == 1;
+				
+				if (ev.which) r = ev.which == 3;
+				else if (ev.button) r = ev.button == 2;
+				
+				if (r && (r != mRight)) {
+					dx = mouseX;
+					dy = mouseY;
+				}
+				
+				if (r) mRight = r;
+				if (l) mLeft = l;
+				
+				if (mLeft) {
+                    if (keys[67]) currentTile = map.cell[mTileY * map.width + mTileX];
+                    else map.cell[mTileY * map.width + mTileX] = currentTile;
+                }
+				
+				update = true;
+			}
+			
+			function mup(ev) {
+				var l = false;
+				var r = false;
+				
+				if (ev.which) l = ev.which == 1;
+				else if (ev.button) l = ev.button == 1;
+				
+				if (ev.which) r = ev.which == 3;
+				else if (ev.button) r = ev.button == 2;
+				
+				if (r && (r != mRight)) {
+					ux = mouseX;
+					uy = mouseY;
+				} 
+				
+				if (r) mRight = !r;
+				if (l) mLeft = !l;
+				update = true;
+			}
+
+			// From the net.
+			function timedCount() {
+				animate = true;
+				if (update) draw(map);
+				animate = false;
+				t = setTimeout("timedCount()", 20);
+			}
+
+			function doTimer() {
+				if (!timer_is_on) {
+					timer_is_on=1;
+					timedCount();
+				}
+			}	
+		
+			$(document).ready(init);
+
+		</script>
+		<link rel="stylesheet" type="text/css" href="./styles/isometric.css"/>
+	</head>
+	<body onResize="resizeWindow();">
+		<!-- <h1 id ="header"><script language="JavaScript">document.write(document.title)</script></h1> -->
+		<canvas
+			id = "example"
+			width = "600"
+			height = "600"
+			tabindex = "0"
+			onMouseOut = "buttonsUp();"
+			oncontextmenu = "return false;"
+			style = "cursor: none; padding: 0; margin: 0;"
+		>
+			HTML5 Canvas ei toimi selaimessasi. Aika päivittää selain.
+		</canvas>
+		<div class="palette"></div>
+	</body>
+</html>
