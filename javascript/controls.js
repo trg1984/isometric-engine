@@ -31,7 +31,7 @@ function mdown(ev) {
 		else map.cell[mTileY * map.width + mTileX] = currentTile;
 	}
 	
-	update = true;
+	updateAllLayers();
 }
 
 function mup(ev) {
@@ -51,7 +51,7 @@ function mup(ev) {
 	
 	if (r) mRight = !r;
 	if (l) mLeft = !l;
-	update = true;
+	updateAllLayers();
 }
 
 function mwheel(ev) {
@@ -59,13 +59,11 @@ function mwheel(ev) {
 	var delta = Math.max(-1, Math.min(1, (ev.wheelDelta || -ev.detail)));
 	if (keys[90]) map.z[mTileY * map.width + mTileX] += delta;
 	else map.cell[mTileY * map.width + mTileX] += delta;
-	update = true;
+	updateAllLayers();
 }
 
 function mmove(ev) {
-	
-	var canvas = document.getElementById('maplayer');
-	
+	var canvas = ev.target;
 	if (ev.layerX || ev.layerX == 0) { // Firefox
 		ev._x = ev.layerX - canvas.offsetLeft;
 		ev._y = ev.layerY - canvas.offsetTop - 1;
@@ -77,7 +75,6 @@ function mmove(ev) {
 	if (mRight) {
 		offsetX += ev._x - mouseX;
 		offsetY += ev._y - mouseY; 
-		checkOffset();
 	}
 	mouseX = ev._x;
 	mouseY = ev._y;
@@ -93,7 +90,7 @@ function mmove(ev) {
 		else map.cell[mTileY * map.width + mTileX] = currentTile;
 	}
 	
-	update = true;
+	updateAllLayers();
 }
 
 function kDown(key) {
@@ -124,4 +121,7 @@ function initControls(parent) {
 	parent.addEventListener('keyup',  kUp, false);
 }
 
-function buttonsUp() { mLeft = mRight = false; }
+function buttonsUp() {
+	mLeft = mRight = false;
+	layers[layerNumToID['ui']].update = true; // update ui layer. // fix this by creating a map between layer ids and their respective numbers.
+}

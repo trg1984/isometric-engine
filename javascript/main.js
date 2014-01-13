@@ -15,7 +15,6 @@ var timer_is_on = 0;
 var offsetX;
 var offsetY;
 var sprites;
-var update = true;
 var animate = false;
 var keys = new Array(255);
 
@@ -43,11 +42,10 @@ function xyToIso(i, j) {
 
 // Draw the map.
 function drawMap(m) {
-	var canvas = document.getElementById('maplayer');
-	var ctx = canvas.getContext('2d'); 
-	ctx.mozImageSmoothingEnabled = false;
+	var canvas = layers[0].canvas;
+	var ctx = canvas.getContext('2d');
 	
-	ctx.fillStyle = "rgb(50,130,255)";
+	//ctx.fillStyle = "rgb(50,130,255)";
 	
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	//
@@ -55,7 +53,7 @@ function drawMap(m) {
 	//if (bg.width > 0) ctx.drawImage(bg, canvas.width / 2 - bg.width / 2, canvas.height / 2 - bg.height / 2);
 	//else ctx.fillRect(0, 0, canvas.width, canvas.height);
 	
-	ctx.fillStyle    = '#fff';
+	//ctx.fillStyle    = '#fff';
 	
 	// Calculate the corner points.
 	var floorArray = function(val, ind, arr) { arr[ind] = Math.floor(val) };
@@ -93,15 +91,20 @@ function drawMap(m) {
 			}
 		}
 	}
-	var coords = isoConvert(mouseX, mouseY - tileHeight / 2);
-	coords[0] = Math.floor(coords[0]) + 0.5;
-	coords[1] = Math.floor(coords[1]) + 0.5;
-	mTileX = Math.floor(coords[0]);
-	mTileY = Math.floor(coords[1] + 1);
+}
+
+function drawUI(m) {
+	
+	var canvas = layers[2].canvas;
+	var ctx = canvas.getContext('2d');
+	
+	// This clearing can be optimized by tracking drawn elements.
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	
 	ctx.beginPath();
 	ctx.strokeStyle = '#2f2';
 	
-	//ctx.rect(mTileX * tileWidth + offsetX, mTileY * tileHeight + offsetY, tileWidth, tileHeight);
+	var coords = [mTileX + 0.5, mTileY - 0.5];
 	ctx.moveTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); ++coords[0];
 	ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); ++coords[1];
 	ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); --coords[0];
@@ -124,12 +127,10 @@ function drawMap(m) {
 	ctx.fillText  ('Coordinates (x, y): (' + mouseX + ', '+ mouseY + ').', 20, 20);
 	ctx.fillText  ('Offset (x, y): (' + offsetX + ', '+ offsetY + ').', 20, 35);
 	ctx.fillText  ('Tile (x, y, ind): (' + (mTileX) + ', '+ (mTileY) + ', ' + ((mTileX >= 0) && (mTileX < m.width) && (mTileY >= 0) && (mTileY < m.height) ? m.cell[mTileY * m.width + mTileX] : 'NaN') + ').', 20, 80);
-	update = false;
 }
 
-function toggleTiles() {
-	tiles = !tiles;
-	update = true;
+function drawSprites(m) {
+	// Nothing yet.
 }
 
 function setToolTile(n) { toolTile = n; }
@@ -155,7 +156,7 @@ function initMap(m) {
 	m.cell = temp.cell;
 	m.z = temp.z;
 	*/
-	var canvas = document.getElementById('maplayer');
+	//var canvas = document.getElementById('map');
 	
 	offsetX = screen.width / 2 - tileWidth / 2;
 	offsetY = screen.height / 2 - m.height / 2 * tileHeight;
@@ -182,17 +183,6 @@ function isIn(item, list) {
 	return false;
 }
 
-function checkOffset() {
-	var canvas = document.getElementById('maplayer');
-	//if (offsetX < -tileWidth * (map.width - 1) + canvas.width)
-	//	offsetX = -tileWidth * (map.width - 1) + canvas.width;
-	//if (offsetY < -tileHeight * (map.height - 1) + canvas.height)
-	//	offsetY = -tileHeight * (map.height - 1) + canvas.height;
-	
-	//if (offsetX > -2 * tileWidth) offsetX = -2 * tileWidth;
-	//if (offsetY > -2 * tileHeight) offsetY = -2 * tileHeight;
-}
-
 function resizeWindow() {
 	// Set window size.
 	var winW = 630, winH = 460;
@@ -211,41 +201,46 @@ function resizeWindow() {
 		winH = window.innerHeight;
 	}
 	
-	var canvas = document.getElementById('maplayer');
-	canvas.width = winW;
-	canvas.height = winH;
+	for (var item in layers) {
+		layers[item].resize(winW, winH);
+	}
 	
-	$('.palette').height($(window).height() - 10);
-	
-	checkOffset();
-	
-	// Fill the canvas.
-	update = true;
+	$('.palette').height(winH - 10);
 }
 
 function init() {
 	map = new Map(50, 50);
 	initMap(map);
-	var canvas = document.getElementById('maplayer');
+	
+	addLayer( new Layer($('body'), 'map', function(map) { drawMap(map) } ) );
+	addLayer( new Layer($('body'), 'sprites', function(map) { drawSprites(map) } ) );
+	addLayer( new Layer($('body'), 'ui', function(map) { drawUI(map) } ) );
+
+	// Attach controls to the topmost layer.
+	var canvas = layers[layers.length - 1].canvas;
 	initControls(canvas);
 	$(canvas).focus();
+	
 	$('body').resize(resizeWindow);
 	
 	resizeWindow();
 	doTimer();
 }
 
-// From the net.
 function timedCount() {
 	animate = true;
-	if (update) drawMap(map);
+	for (var item in layers) if (layers[item].update) {
+		layers[item].updateFunction(map);
+		layers[item].update = false;
+	}
+	
 	animate = false;
 	t = setTimeout("timedCount()", 20);
 }
 
 function doTimer() {
 	if (!timer_is_on) {
-		timer_is_on=1;
+		timer_is_on = 1;
 		timedCount();
 	}
 }
