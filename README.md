@@ -1,5 +1,5 @@
-Isometric Game engine
-=====================
+Isometric Engine
+================
 
 Isometric graphics/game engine for HTML5. Uses canvas to display the graphics. Has a self contained map editor (this is mostly what it currently is).
 
