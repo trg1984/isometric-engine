@@ -6,7 +6,7 @@ div.palette {
     width: 350px;
     height: 800px;
     overflow-y:auto;
-    bborder-radius: 10px;
+    border-radius: 10px;
     background: rgba(0, 0, 0, 0.2);
 }
 
