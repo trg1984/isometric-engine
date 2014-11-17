@@ -209,15 +209,17 @@ function resizeWindow() {
 }
 
 function init() {
+	
 	map = new Map(50, 50);
 	initMap(map);
 	
 	addLayer( new Layer($('body'), 'map', function(map) { drawMap(map) } ) );
 	addLayer( new Layer($('body'), 'sprites', function(map) { drawSprites(map) } ) );
 	addLayer( new Layer($('body'), 'ui', function(map) { drawUI(map) } ) );
-
+	
 	// Attach controls to the topmost layer.
 	var canvas = layers[layers.length - 1].canvas;
+	
 	initControls(canvas);
 	$(canvas).focus();
 	

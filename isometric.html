@@ -1,7 +1,7 @@
 ﻿<html>
 	<head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Isometric-testi</title>
+		<title>Isometric Engine</title>
 		<link rel="stylesheet" type="text/css" href="styles/isometric.css"/>
 		<script type='text/javascript' src='javascript/jquery-1.10.2.js'></script>
         <script type='text/javascript' src='javascript/jquery-ui.min.js'></script>      
@@ -10,9 +10,14 @@
 		<script type='text/javascript' src='javascript/player.js'></script>
         <script type='text/javascript' src='javascript/controls.js'></script>
         <script type='text/javascript' src='javascript/layer.js'></script>
+        <script type='text/javascript'>
+			$(document).ready(init);
+		</script>
 	</head>
 	<body>
-		<div class="palette"></div>  
-		<script type='text/javascript'> $(document).ready(init); </script>
+		<div class="palette">
+			<div class="tiles"></div>
+			<div class="sprites"></div>
+		</div>  
 	</body>
 </html>

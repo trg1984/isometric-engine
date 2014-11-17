@@ -6,7 +6,7 @@ function addLayer(layer) {
 	layers.push( layer );
 }
 
-Layer = function(parent, id, updateFunction) {
+function Layer(parent, id, updateFunction) {
 	var self = this;
 	this.id = id;
 	this.parent = parent;
@@ -30,7 +30,7 @@ Layer = function(parent, id, updateFunction) {
 }
 
 Layer.prototype.resize = function(wid, hei) {
-	if ((this.canvas.width !== wid) || (this.canvas.height = hei)) {
+	if ((this.canvas.width !== wid) || (this.canvas.height !== hei)) {
 		this.canvas.width = wid;
 		this.canvas.height = hei;
 		this.canvas.attributes['width'] = wid;

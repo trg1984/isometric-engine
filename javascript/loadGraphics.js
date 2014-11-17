@@ -26,17 +26,17 @@ var imgList = [
 
 var img = new Array();
 for (var item in imgList) {
-	var temp = new Image();
-	temp.isLoaded = false;
-	temp.onload = function() {
-		this.isLoaded = true;
-		//window.console.debug(this.src + ' is loaded.');
-		$(this).click(function() {currentTile = imgList.indexOf(this.src.substring(this.src.lastIndexOf('/') + 1)); });
-		$('.palette')[0].appendChild(this);
-	}
-	img[item] = temp;
-	temp.src = 'images/roadTiles_v2/png/' + imgList[item];
-	//console.debug(temp.src + ' added.');
+	img[item] = new Image();
+	img[item].isLoaded = false;
+	img[item].onload = (function(current) { return function(ev) {
+		img[current].isLoaded = true;
+		//window.console.debug(img[current].src + ' is loaded.');
+		$(img[current]).click(function() {currentTile = imgList.indexOf(img[current].src.substring(img[current].src.lastIndexOf('/') + 1)); });
+		$('.palette .tiles').append(img[current]);
+	}})(item);
+	
+	img[item].src = 'images/roadTiles_v2/png/' + imgList[item];
+	//console.debug(img[item].src + ' added.');
 }
 var cursor = new Image();
 var bg = new Image();

@@ -8,6 +8,7 @@ div.palette {
     overflow-y:auto;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.2);
+	z-index: 100;
 }
 
 body {
@@ -19,6 +20,15 @@ body {
     margin:0;
     padding: 0;
     overflow: hidden;
+}
+
+canvas.layer {
+	position: absolute;
+	top: 0:
+	left: 0;
+	cursor: none;
+	padding: 0;
+	margin: 0;
 }
 
 @media print {
