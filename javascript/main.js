@@ -209,7 +209,21 @@ function resizeWindow() {
 }
 
 function init() {
-	
+	$('body').on('click', '.exportMap', function(e) {
+
+		$('body').append('<div class="mapExport"><div class="close">Close</div><textarea type="textarea" rows="50" cols="100"/></div>');
+		$('.mapExport textarea').val('[' + map.cell + ']');
+		$('.mapExport').css( {
+						top: $(window).height()/2 - $('.mapExport').height()/2 + 'px',
+						left: $(window).width()/2 - $('.mapExport').width()/2 + 'px'
+ 					});
+ 
+		$('body').on('click', '.mapExport .close', function(e) {
+			$('.mapExport').remove();
+		});
+
+	});
+
 	map = new Map(50, 50);
 	initMap(map);
 	
