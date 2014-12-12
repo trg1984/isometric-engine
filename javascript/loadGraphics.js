@@ -1,4 +1,4 @@
-var imgList = [
+IsoMap.prototype.imgList = [
 	'bridgeEast.png'      ,'lotExitEast.png'   ,'treeConiferShort.png',
 	'bridgeNorth.png'     ,'lotExitNorth.png'  ,'treeConiferTall.png',
 	'crossroad.png'       ,'lotExitSouth.png'  ,'treeShort_autumn.png',
@@ -24,22 +24,28 @@ var imgList = [
 	'lotEast.png'         ,'roadTWest.png'     ,'waterWest.png'
 ];
 
-var img = new Array();
-for (var item in imgList) {
-	img[item] = new Image();
-	img[item].isLoaded = false;
-	img[item].onload = (function(current) { return function(ev) {
-		img[current].isLoaded = true;
-		//window.console.debug(img[current].src + ' is loaded.');
-		$(img[current]).click(function() {currentTile = imgList.indexOf(img[current].src.substring(img[current].src.lastIndexOf('/') + 1)); });
-		$('.palette .tiles').append(img[current]);
-	}})(item);
-	
-	img[item].src = 'images/roadTiles_v2/png/' + imgList[item];
-	//console.debug(img[item].src + ' added.');
-}
-var cursor = new Image();
-var bg = new Image();
 
-cursor.src = 'images/cursor.png';
-bg.src = 'images/clouds.jpg';
+IsoMap.prototype.loadImages = function() {
+	var self = this; 
+
+	img = new Array();
+
+	for (var item in self.imgList) {
+		img[item] = new Image();
+		img[item].isLoaded = false;
+		img[item].onload = (function(current) { return function(ev) {
+			img[current].isLoaded = true;
+			//window.console.debug(img[current].src + ' is loaded.');
+			$(img[current]).click(function() {self.currentTile = self.imgList.indexOf(img[current].src.substring(img[current].src.lastIndexOf('/') + 1)); });
+			$('.palette .tiles').append(img[current]);
+		}})(item);
+		
+		img[item].src = 'images/roadTiles_v2/png/' + self.imgList[item];
+		//console.debug(img[item].src + ' added.');
+	}
+	self.cursor = new Image();
+	self.bg = new Image();
+
+	self.cursor.src = 'images/cursor.png';
+	self.bg.src = 'images/clouds.jpg';
+}

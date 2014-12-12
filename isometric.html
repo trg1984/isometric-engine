@@ -10,9 +10,8 @@
 		<script type='text/javascript' src='javascript/player.js'></script>
         <script type='text/javascript' src='javascript/controls.js'></script>
         <script type='text/javascript' src='javascript/layer.js'></script>
-        <script type='text/javascript'>
-			$(document).ready(init);
-		</script>
+
+      
 	</head>
 	<body>
 		<div class="palette">
@@ -20,5 +19,14 @@
 			<div class="tiles"></div>
 			<div class="sprites"></div>
 		</div>  
+	
+	  <script type='text/javascript'>
+			$(document).ready(function() {
+
+				var isoMap = new IsoMap();
+				// init(true);
+			});
+		</script>
+
 	</body>
 </html>

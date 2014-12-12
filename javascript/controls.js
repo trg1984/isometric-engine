@@ -1,40 +1,36 @@
-var mRight = false;
-var mLeft = false;
-var mouseX = 0;
-var mouseY = 0;
-var mTileX = 0;
-var mTileY = 0;
-var ux = 0;
-var uy = 0;
-var dx = 0;
-var dy = 0;
 
-function mdown(ev) {
+IsoMap.prototype.mdown = function(ev) {
+	var self = this;
+
 	var l = false;
 	var r = false;
+	
 	if (ev.which) l = ev.which == 1;
 	else if (ev.button) l = ev.button == 1;
 	
 	if (ev.which) r = ev.which == 3;
 	else if (ev.button) r = ev.button == 2;
 	
-	if (r && (r != mRight)) {
-		dx = mouseX;
-		dy = mouseY;
+	if (r && (r != self.mRight)) {
+		dx = self.mouseX;
+		dy = self.mouseY;
 	}
 	
-	if (r) mRight = r;
-	if (l) mLeft = l;
+	if (r) self.mRight = r;
+	if (l) self.mLeft = l;
 	
-	if (mLeft) {
-		if (keys[67]) currentTile = map.cell[mTileY * map.width + mTileX];
-		else map.cell[mTileY * map.width + mTileX] = currentTile;
+	if (self.mLeft) {
+		if (self.keys[67]) self.currentTile = self.map.cell[mTileY * self.map.width + self.mTileX];
+		else self.map.cell[self.mTileY * self.map.width + self.mTileX] = self.currentTile;
 	}
 	
-	updateAllLayers();
+	self.updateAllLayers();
 }
 
-function mup(ev) {
+IsoMap.prototype.mup =function(ev) {
+
+	var self = this;
+
 	var l = false;
 	var r = false;
 	
@@ -44,25 +40,29 @@ function mup(ev) {
 	if (ev.which) r = ev.which == 3;
 	else if (ev.button) r = ev.button == 2;
 	
-	if (r && (r != mRight)) {
+	if (r && (r != self.mRight)) {
 		ux = mouseX;
 		uy = mouseY;
 	} 
 	
-	if (r) mRight = !r;
-	if (l) mLeft = !l;
-	updateAllLayers();
+	if (r) self.mRight = !r;
+	if (l) self.mLeft = !l;
+	self.updateAllLayers();
 }
 
-function mwheel(ev) {
+IsoMap.prototype.mwheel = function(ev) {
+
+	var self = this;
+
 	ev = window.event || ev; // old IE support
 	var delta = Math.max(-1, Math.min(1, (ev.wheelDelta || -ev.detail)));
-	if (keys[90]) map.z[mTileY * map.width + mTileX] += delta;
-	else map.cell[mTileY * map.width + mTileX] += delta;
-	updateAllLayers();
+	if (self.keys[90]) self.map.z[self.mTileY * self.map.width + self.mTileX] += delta;
+	else self.map.cell[self.mTileY * self.map.width + self.mTileX] += delta;
+	self.updateAllLayers();
 }
 
-function mmove(ev) {
+IsoMap.prototype.mmove = function(ev) {
+	var self = this;
 	var canvas = ev.target;
 	if (ev.layerX || ev.layerX == 0) { // Firefox
 		ev._x = ev.layerX - canvas.offsetLeft;
@@ -72,56 +72,60 @@ function mmove(ev) {
 		ev._y = ev.offsetY - canvas.offsetTop - 1;
 	}				
 		
-	if (mRight) {
+	if (self.mRight) {
 		offsetX += ev._x - mouseX;
 		offsetY += ev._y - mouseY; 
 	}
-	mouseX = ev._x;
-	mouseY = ev._y;
+	self.mouseX = ev._x;
+	self.mouseY = ev._y;
 	
-	var coords = isoConvert(mouseX, mouseY - tileHeight / 2);
+	var coords = self.isoConvert(self.mouseX, self.mouseY - self.tileHeight / 2);
 	coords[0] = Math.floor(coords[0]) + 0.5;
 	coords[1] = Math.floor(coords[1]) + 0.5;
-	mTileX = Math.floor(coords[0]);
-	mTileY = Math.floor(coords[1] + 1);
+	self.mTileX = Math.floor(coords[0]);
+	self.mTileY = Math.floor(coords[1] + 1);
 	
-	if (mLeft) {
-		if (keys[67]) currentTile = map.cell[mTileY * map.width + mTileX];
-		else map.cell[mTileY * map.width + mTileX] = currentTile;
+	if (self.mLeft && !self.readOnly) {
+		if (self.keys[67]) self.currentTile = self.map.cell[self.mTileY * self.map.width + self.mTileX];
+		else self.map.cell[self.mTileY * self.map.width + self.mTileX] = self.currentTile;
 	}
 	
-	updateAllLayers();
+	self.updateAllLayers();
 }
 
-function kDown(key) {
+IsoMap.prototype.kDown = function(key) {
+	var self = this;
 	/* key down events here */
 	key = key.keyCode || key;
 	console.debug(key + ' down,');
-	keys[key] = true;
+	self.keys[key] = true;
 }
 
-function kUp(key) {
+IsoMap.prototype.kUp = function(key) {
+	var self = this;
 	/* key down events here */
 	key = key.keyCode || key;
 	console.debug(key + ' up,');
-	keys[key] = false;
+	self.keys[key] = false;
 }
 
-function initControls(parent) {
-	
+IsoMap.prototype.initControls = function(parent) {
+	var self = this;
 	// Attach the mousedown, mousemove and mouseup event listeners.
-	parent.addEventListener('mousedown', mdown, false);
-	parent.addEventListener('mousemove', mmove, false);
-	parent.addEventListener('mouseup',   mup, false);
-	parent.addEventListener("mouseout", buttonsUp, false);
-	parent.addEventListener("mousewheel", mwheel, false);
-	parent.addEventListener("DOMMouseScroll", mwheel, false);
+	parent.addEventListener('mousedown', self.mdown.bind(self), false);
+	parent.addEventListener('mousemove', self.mmove.bind(self), false);
+	parent.addEventListener('mouseup',   self.mup.bind(self), false);
+	parent.addEventListener("mouseout", self.buttonsUp.bind(self), false);
+	parent.addEventListener("mousewheel", self.mwheel.bind(self), false);
+	parent.addEventListener("DOMMouseScroll", self.mwheel.bind(self), false);
 	
-	parent.addEventListener('keydown',  kDown, false);
-	parent.addEventListener('keyup',  kUp, false);
+	parent.addEventListener('keydown',  self.kDown, false);
+	parent.addEventListener('keyup',  self.kUp, false);
 }
 
-function buttonsUp() {
-	mLeft = mRight = false;
-	layers[layerNumToID['ui']].update = true; // update ui layer. // fix this by creating a map between layer ids and their respective numbers.
+IsoMap.prototype.buttonsUp = function() {
+	var self = this; 
+	
+	self.mLeft = self.mRight = false;
+	self.layers[self.layerNumToID['ui']].update = true; // update ui layer. // fix this by creating a map between layer ids and their respective numbers.
 }

@@ -1,26 +1,50 @@
 // Copyright to all of the code Rolf Lindén (rolind@utu.fi) 2011-2013. All rights reserved.
 
-// Initialize.
-var map;
-var tileWidth = 100;
-var tileHeight = 65;
-var tileSpacingWidth = 100
-var tileSpacingHeight = 65;
-var tiles = true;
-var toolTile = 2;
-var toolSize = 0;
-var t =  0; 
-var currentTile =  0; 
-var timer_is_on = 0;
-var offsetX;
-var offsetY;
-var sprites;
-var animate = false;
-var keys = new Array(255);
+IsoMap = function(readOnly, callback) {
+	// Initialize.
+	this.readOnly = readOnly || false;
+	this.map;
+	this.tileWidth = 100;
+	this.tileHeight = 65;
+	this.tileSpacingWidth = 100
+	this.tileSpacingHeight = 65;
+	this.tiles = true;
+	this.toolTile = 2;
+	this.toolSize = 0;
+	this.t =  0; 
+	this.currentTile =  0; 
+	this.timer_is_on = 0;
+	this.offsetX;
+	this.offsetY;
+	this.sprites;
+	this.animate = false;
+	this.eys = new Array(255);
 
-function isoConvert (x, y) {
-	var i = (x - offsetX) / tileWidth + (y - offsetY) / (tileHeight - 15);
-	var j = i - 2 * (x - offsetX) / tileWidth;
+	this.layers = [];
+	this.layerNumToID = {};
+
+	this.mRight = false;
+	this.mLeft = false;
+	this.mouseX = 0;
+	this.mouseY = 0;
+	this.mTileX = 0;
+	this.mTileY = 0;
+	this.ux = 0;
+	this.uy = 0;
+	this.dx = 0;
+	this.dy = 0;
+	this.keys = [];
+
+	this.loadImages();
+	this.init();
+}
+
+
+
+IsoMap.prototype.isoConvert = function(x, y) {
+	var self = this;
+	var i = (x - self.offsetX) / self.tileWidth + (y - self.offsetY) / (self.tileHeight - 15);
+	var j = i - 2 * (x - self.offsetX) / self.tileWidth;
 	/* How it's done
 	x = (i - j) * tileWidth / 2 + offsetX
 	(x - offsetX) * 2 / tileWidth = i - j
@@ -34,15 +58,18 @@ function isoConvert (x, y) {
 	return [i, j];
 }
 
-function xyToIso(i, j) {
-	var x = (i - j) * tileWidth / 2 + offsetX;
-	var y = (i + j) * (tileHeight - 15) / 2 + offsetY;
+IsoMap.prototype.xyToIso = function(i, j) {
+	var self = this; 
+	var x = (i - j) * self.tileWidth / 2 + self.offsetX;
+	var y = (i + j) * (self.tileHeight - 15) / 2 + self.offsetY;
 	return [x, y];
 }
 
 // Draw the map.
-function drawMap(m) {
-	var canvas = layers[0].canvas;
+IsoMap.prototype.drawMap = function(m) {
+	var self = this;
+
+	var canvas = self.layers[0].canvas;
 	var ctx = canvas.getContext('2d');
 	
 	//ctx.fillStyle = "rgb(50,130,255)";
@@ -57,10 +84,10 @@ function drawMap(m) {
 	
 	// Calculate the corner points.
 	var floorArray = function(val, ind, arr) { arr[ind] = Math.floor(val) };
-	var P1 = isoConvert(0, 0);                        P1.forEach(floorArray);
-	var P2 = isoConvert(canvas.width, 0);             P2.forEach(floorArray);
-	var P3 = isoConvert(0, canvas.height);            P3.forEach(floorArray);
-	var P4 = isoConvert(canvas.width, canvas.height); P4.forEach(floorArray);
+	var P1 = self.isoConvert(0, 0);                        P1.forEach(floorArray);
+	var P2 = self.isoConvert(canvas.width, 0);             P2.forEach(floorArray);
+	var P3 = self.isoConvert(0, canvas.height);            P3.forEach(floorArray);
+	var P4 = self.isoConvert(canvas.width, canvas.height); P4.forEach(floorArray);
 	
 	// Just to make things pretty -- boundaries for y-interval.
 	var y0 = Math.min(Math.max(y0 = P2[1], 0), m.height - 1);
@@ -81,7 +108,7 @@ function drawMap(m) {
 		var x1 = Math.min(Math.max(Math.ceil( (j <= P4[1]) ? r3 * (P4[0] - P2[0]) + P2[0] : r4 * (P3[0] - P4[0]) + P4[0] ) + 1, 0), m.width - 1);
 		
 		for (var i = x0; i <= x1; ++i) {  
-			var iso = xyToIso(i, j);
+			var iso = self.xyToIso(i, j);
 			if (
 				( typeof(img[ m.cell[j * m.width + i] ]) !== 'undefined' ) &&
 				img[ m.cell[j * m.width + i] ].isLoaded
@@ -93,7 +120,7 @@ function drawMap(m) {
 	}
 }
 
-function drawUI(m) {
+IsoMap.drawUI = function(m) {
 	
 	var canvas = layers[2].canvas;
 	var ctx = canvas.getContext('2d');
@@ -129,15 +156,17 @@ function drawUI(m) {
 	ctx.fillText  ('Tile (x, y, ind): (' + (mTileX) + ', '+ (mTileY) + ', ' + ((mTileX >= 0) && (mTileX < m.width) && (mTileY >= 0) && (mTileY < m.height) ? m.cell[mTileY * m.width + mTileX] : 'NaN') + ').', 20, 80);
 }
 
-function drawSprites(m) {
+IsoMap.prototype.drawSprites = function(m) {
 	// Nothing yet.
 }
 
-function setToolTile(n) { toolTile = n; }
+IsoMap.prototype.setToolTile = function(n) { toolTile = n; }
 
-function setToolSize(n) { toolSize = n; }
+IsoMap.prototype.setToolSize = function(n) { toolSize = n; }
 
-function initMap(m) {
+IsoMap.prototype.initMap = function(m) {
+
+	var self = this;
 	for (var i = 0; i < m.width; i++) {  
 		for (var j = 0; j < m.height; j++) {
 			var x0 = Math.round(Math.random() * 18);
@@ -147,7 +176,7 @@ function initMap(m) {
 	}  
 	for (var i = 0; i < m.width; i++)   
 		for (var j = 0; j < m.height; j++) {
-			setGraphics(m, i, j, 15);
+			self.setGraphics(m, i, j, 15);
 			m.z[j * m.width + i] = 0;
 	}
 	/*
@@ -158,8 +187,8 @@ function initMap(m) {
 	*/
 	//var canvas = document.getElementById('map');
 	
-	offsetX = screen.width / 2 - tileWidth / 2;
-	offsetY = screen.height / 2 - m.height / 2 * tileHeight;
+	self.offsetX = window.innerWidth / 2 - self.tileWidth / 2;
+	self.offsetY = window.innerHeight / 2 - m.height / 2 * self.tileHeight;
 }
 
 function Map(w, h) {
@@ -170,20 +199,22 @@ function Map(w, h) {
 	this.cellType = new Array(this.width * this.height);
 }
 	
-function setGraphics(map, x, y, value) {
+IsoMap.prototype.setGraphics = function(map, x, y, value) {
 	if (y * map.width + x < 0) return;
 	if (y * map.width + x >= map.cell.length) return;
 	
 	map.cell[y * map.width + x] = value;
 }
 
-function isIn(item, list) {
+IsoMap.prototype.isIn = function(item, list) {
 	var it = list.length;
 	while (it--) if (item == list[it]) return true;
 	return false;
 }
 
-function resizeWindow() {
+IsoMap.prototype.resizeWindow = function() {
+	var self = this;
+
 	// Set window size.
 	var winW = 630, winH = 460;
 	if (document.body && document.body.offsetWidth) {
@@ -201,62 +232,75 @@ function resizeWindow() {
 		winH = window.innerHeight;
 	}
 	
-	for (var item in layers) {
-		layers[item].resize(winW, winH);
+	for (var item in self.layers) {
+		self.layers[item].resize(winW, winH);
 	}
 	
-	$('.palette').height(winH - 10);
+	if(!self.readOnly) {
+		$('.palette').height(winH - 10);
+	}
 }
 
-function init() {
-	$('body').on('click', '.exportMap', function(e) {
+IsoMap.prototype.init = function() {
+	var self = this;
 
-		$('body').append('<div class="mapExport"><div class="close">Close</div><textarea type="textarea" rows="50" cols="100"/></div>');
-		$('.mapExport textarea').val('[' + map.cell + ']');
-		$('.mapExport').css( {
-						top: $(window).height()/2 - $('.mapExport').height()/2 + 'px',
-						left: $(window).width()/2 - $('.mapExport').width()/2 + 'px'
- 					});
- 
-		$('body').on('click', '.mapExport .close', function(e) {
-			$('.mapExport').remove();
+	console.log("init map", self.readOnly);
+	if(self.readOnly) {
+		$('.palette').remove();
+	}
+
+	if(!self.readOnly) {
+		$('body').on('click', '.exportMap', function(e) {
+
+			$('body').append('<div class="mapExport"><div class="close">xClose</div><textarea type="textarea" rows="50" cols="100"/></div>');
+			$('.mapExport textarea').val('[' + map.cell + ']');
+			$('.mapExport').css( {
+							top: $(window).height()/2 - $('.mapExport').height()/2 + 'px',
+							left: $(window).width()/2 - $('.mapExport').width()/2 + 'px'
+	 					});
+	 
+			$('body').on('click', '.mapExport .close', function(e) {
+				$('.mapExport').remove();
+			});
+
 		});
+	}
 
-	});
-
-	map = new Map(50, 50);
-	initMap(map);
+	self.map = new Map(50, 50);
+	self.initMap(self.map);
 	
-	addLayer( new Layer($('body'), 'map', function(map) { drawMap(map) } ) );
-	addLayer( new Layer($('body'), 'sprites', function(map) { drawSprites(map) } ) );
-	addLayer( new Layer($('body'), 'ui', function(map) { drawUI(map) } ) );
+	self.addLayer( new Layer($('body'), 'map', function(map) { self.drawMap(self.map) }, self.layers ) );
+	self.addLayer( new Layer($('body'), 'sprites', function(map) { self.drawSprites(self.map)}, self.layers ) );
+	self.addLayer( new Layer($('body'), 'ui', function(map) { self.drawUI(self.map) }, self.layers ) );
 	
 	// Attach controls to the topmost layer.
-	var canvas = layers[layers.length - 1].canvas;
+	var canvas = self.layers[self.layers.length - 1].canvas;
 	
-	initControls(canvas);
+	self.initControls(canvas);
 	$(canvas).focus();
 	
-	$('body').resize(resizeWindow);
+	$('body').resize(self.resizeWindow);
 	
-	resizeWindow();
-	doTimer();
+	self.resizeWindow();
+	self.doTimer();
 }
 
-function timedCount() {
-	animate = true;
-	for (var item in layers) if (layers[item].update) {
-		layers[item].updateFunction(map);
-		layers[item].update = false;
+IsoMap.prototype.timedCount = function() {
+	var self = this;
+	self.animate = true;
+	for (var item in self.layers) if (self.layers[item].update) {
+		self.layers[item].updateFunction(map);
+		self.layers[item].update = false;
 	}
 	
-	animate = false;
-	t = setTimeout("timedCount()", 20);
+	self.animate = false;
+	self.t = setTimeout("timedCount()", 20);
 }
 
-function doTimer() {
-	if (!timer_is_on) {
-		timer_is_on = 1;
-		timedCount();
+IsoMap.prototype.doTimer = function() {
+	var self = this;
+	if (!self.timer_is_on) {
+		self.timer_is_on = 1;
+		self.timedCount();
 	}
 }

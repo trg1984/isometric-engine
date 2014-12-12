@@ -1,13 +1,16 @@
-var layers = [];
-var layerNumToID = {};
 
-function addLayer(layer) {
-	layerNumToID[layer.id] = layers.length;
-	layers.push( layer );
+
+IsoMap.prototype.addLayer = function(layer) {
+	var self = this;
+	self.layerNumToID[layer.id] = self.layers.length;
+	self.layers.push( layer );
 }
 
-function Layer(parent, id, updateFunction) {
+function Layer(parent, id, updateFunction, layers) {
 	var self = this;
+
+	console.log("layers: ", layers);
+
 	this.id = id;
 	this.parent = parent;
 	this.update = true;
@@ -39,6 +42,7 @@ Layer.prototype.resize = function(wid, hei) {
 	}
 }
 
-function updateAllLayers() {
-	for (var item in layers) layers[item].update = true;
+IsoMap.prototype.updateAllLayers = function() {
+	var self = this;
+	for (var item in self.layers) self.layers[item].update = true;
 }
