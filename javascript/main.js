@@ -110,19 +110,21 @@ IsoMap.prototype.drawMap = function(m) {
 		for (var i = x0; i <= x1; ++i) {  
 			var iso = self.xyToIso(i, j);
 			if (
-				( typeof(img[ m.cell[j * m.width + i] ]) !== 'undefined' ) &&
-				img[ m.cell[j * m.width + i] ].isLoaded
+				( typeof(self.img[ m.cell[j * m.width + i] ]) !== 'undefined' ) &&
+				self.img[ m.cell[j * m.width + i] ].isLoaded
 				) {
-				ctx.drawImage(img[ m.cell[j * m.width + i] ], iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
+				ctx.drawImage(self.img[ m.cell[j * m.width + i] ], iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
+				// console.log("debug:",self.img[ m.cell[j * m.width + i] ], iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
 				//ctx.fillText  ('(' + i + ', ' + j + ')', (i - j + 0.6) * tileWidth / 2 + offsetX, (i + j + 0.75) * (tileHeight - 15) / 2 + offsetY - m.z[j * m.width + i]);
 			}
 		}
 	}
 }
 
-IsoMap.drawUI = function(m) {
-	
-	var canvas = layers[2].canvas;
+IsoMap.prototype.drawUI = function(m) {
+	var self = this;
+
+	var canvas = self.layers[2].canvas;
 	var ctx = canvas.getContext('2d');
 	
 	// This clearing can be optimized by tracking drawn elements.
@@ -131,29 +133,29 @@ IsoMap.drawUI = function(m) {
 	ctx.beginPath();
 	ctx.strokeStyle = '#2f2';
 	
-	var coords = [mTileX + 0.5, mTileY - 0.5];
-	ctx.moveTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); ++coords[0];
-	ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); ++coords[1];
-	ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); --coords[0];
-	ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0); --coords[1];
-	ctx.lineTo(((coords[0] - coords[1]) * tileWidth / 2 + offsetX) || 0, ((coords[0] + coords[1]) * (tileHeight - 15 /* ground height */) / 2 + offsetY) || 0);
+	var coords = [self.mTileX + 0.5, self.mTileY - 0.5];
+	ctx.moveTo(((coords[0] - coords[1]) * self.tileWidth / 2 + self.offsetX) || 0, ((coords[0] + coords[1]) * (self.tileHeight - 15 /* ground height */) / 2 + self.offsetY) || 0); ++coords[0];
+	ctx.lineTo(((coords[0] - coords[1]) * self.tileWidth / 2 + self.offsetX) || 0, ((coords[0] + coords[1]) * (self.tileHeight - 15 /* ground height */) / 2 + self.offsetY) || 0); ++coords[1];
+	ctx.lineTo(((coords[0] - coords[1]) * self.tileWidth / 2 + self.offsetX) || 0, ((coords[0] + coords[1]) * (self.tileHeight - 15 /* ground height */) / 2 + self.offsetY) || 0); --coords[0];
+	ctx.lineTo(((coords[0] - coords[1]) * self.tileWidth / 2 + self.offsetX) || 0, ((coords[0] + coords[1]) * (self.tileHeight - 15 /* ground height */) / 2 + self.offsetY) || 0); --coords[1];
+	ctx.lineTo(((coords[0] - coords[1]) * self.tileWidth / 2 + self.offsetX) || 0, ((coords[0] + coords[1]) * (self.tileHeight - 15 /* ground height */) / 2 + self.offsetY) || 0);
 	ctx.stroke();
 	
-	ctx.drawImage(cursor, mouseX, mouseY);
+	ctx.drawImage(self.cursor, self.mouseX, self.mouseY);
 	
 	ctx.fillStyle    = '#fff';
 	ctx.font         = '12px sans-serif';
 	ctx.textBaseline = 'top';
 	// Indicate that the mouse button is down.
-	if (mRight) {
+	if (self.mRight) {
 		ctx.fillText  ('Mouse down.', 20, 50);
-		ctx.fillText  ('Down (x, y): (' + dx + ', '+ dy + ').', 20, 65);
+		ctx.fillText  ('Down (x, y): (' + self.dx + ', '+ self.dy + ').', 20, 65);
 	}
 	else ctx.fillText  ('Mouse up.', 20, 50);
 	
-	ctx.fillText  ('Coordinates (x, y): (' + mouseX + ', '+ mouseY + ').', 20, 20);
-	ctx.fillText  ('Offset (x, y): (' + offsetX + ', '+ offsetY + ').', 20, 35);
-	ctx.fillText  ('Tile (x, y, ind): (' + (mTileX) + ', '+ (mTileY) + ', ' + ((mTileX >= 0) && (mTileX < m.width) && (mTileY >= 0) && (mTileY < m.height) ? m.cell[mTileY * m.width + mTileX] : 'NaN') + ').', 20, 80);
+	ctx.fillText  ('Coordinates (x, y): (' + self.mouseX + ', '+ self.mouseY + ').', 20, 20);
+	ctx.fillText  ('Offset (x, y): (' + self.offsetX + ', '+ self.offsetY + ').', 20, 35);
+	ctx.fillText  ('Tile (x, y, ind): (' + (self.mTileX) + ', '+ (self.mTileY) + ', ' + ((self.mTileX >= 0) && (self.mTileX < m.width) && (self.mTileY >= 0) && (self.mTileY < m.height) ? m.cell[self.mTileY * m.width + self.mTileX] : 'NaN') + ').', 20, 80);
 }
 
 IsoMap.prototype.drawSprites = function(m) {
@@ -200,6 +202,7 @@ function Map(w, h) {
 }
 	
 IsoMap.prototype.setGraphics = function(map, x, y, value) {
+	// console.log(map);
 	if (y * map.width + x < 0) return;
 	if (y * map.width + x >= map.cell.length) return;
 	
@@ -268,10 +271,13 @@ IsoMap.prototype.init = function() {
 
 	self.map = new Map(50, 50);
 	self.initMap(self.map);
+
+	var mapArr = self.map;
 	
-	self.addLayer( new Layer($('body'), 'map', function(map) { self.drawMap(self.map) }, self.layers ) );
-	self.addLayer( new Layer($('body'), 'sprites', function(map) { self.drawSprites(self.map)}, self.layers ) );
-	self.addLayer( new Layer($('body'), 'ui', function(map) { self.drawUI(self.map) }, self.layers ) );
+	self.addLayer( new Layer($('body'), 'map', function(mapArr) { self.drawMap(mapArr)}, self.layers ) );
+	self.addLayer( new Layer($('body'), 'sprites', function(mapArr) { self.drawSprites(mapArr)}, self.layers ) );
+	self.addLayer( new Layer($('body'), 'ui', function(mapArr) { self.drawUI(mapArr) }, self.layers ) );
+	// self.addLayer( new Layer($('body'), 'ui', function(mapArr) { console.log("ehp") }, self.layers ) );
 	
 	// Attach controls to the topmost layer.
 	var canvas = self.layers[self.layers.length - 1].canvas;
@@ -289,12 +295,12 @@ IsoMap.prototype.timedCount = function() {
 	var self = this;
 	self.animate = true;
 	for (var item in self.layers) if (self.layers[item].update) {
-		self.layers[item].updateFunction(map);
+		self.layers[item].updateFunction(self.map);
 		self.layers[item].update = false;
 	}
 	
 	self.animate = false;
-	self.t = setTimeout("timedCount()", 20);
+	self.t = setTimeout(function() { self.timedCount() }, 20);
 }
 
 IsoMap.prototype.doTimer = function() {

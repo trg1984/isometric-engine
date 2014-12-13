@@ -28,20 +28,20 @@ IsoMap.prototype.imgList = [
 IsoMap.prototype.loadImages = function() {
 	var self = this; 
 
-	img = new Array();
+	self.img = new Array();
 
 	for (var item in self.imgList) {
-		img[item] = new Image();
-		img[item].isLoaded = false;
-		img[item].onload = (function(current) { return function(ev) {
-			img[current].isLoaded = true;
+		self.img[item] = new Image();
+		self.img[item].isLoaded = false;
+		self.img[item].onload = (function(current) { return function(ev) {
+			self.img[current].isLoaded = true;
 			//window.console.debug(img[current].src + ' is loaded.');
-			$(img[current]).click(function() {self.currentTile = self.imgList.indexOf(img[current].src.substring(img[current].src.lastIndexOf('/') + 1)); });
-			$('.palette .tiles').append(img[current]);
+			$(self.img[current]).click(function() {self.currentTile = self.imgList.indexOf(img[current].src.substring(img[current].src.lastIndexOf('/') + 1)); });
+			$('.palette .tiles').append(self.img[current]);
 		}})(item);
 		
-		img[item].src = 'images/roadTiles_v2/png/' + self.imgList[item];
-		//console.debug(img[item].src + ' added.');
+		self.img[item].src = 'images/roadTiles_v2/png/' + self.imgList[item];
+		// console.debug(img[item].src + ' added.');
 	}
 	self.cursor = new Image();
 	self.bg = new Image();
