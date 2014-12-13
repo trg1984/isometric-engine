@@ -25,8 +25,8 @@ function Layer(parent, id, updateFunction, layers) {
 			HTML5 Canvas doesn\'t work in your browser. It is time to upgrade.\
 		</canvas>'
 	)[0];
-	var ctx = this.canvas.getContext('2d'); 
-	ctx.mozImageSmoothingEnabled = false;
+	this.ctx = this.canvas.getContext('2d'); 
+	this.ctx.mozImageSmoothingEnabled = false;
 	
 	parent.append(this.canvas);
 }

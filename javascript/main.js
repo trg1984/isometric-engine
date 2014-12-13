@@ -35,6 +35,8 @@ IsoMap = function(readOnly, callback) {
 	this.dy = 0;
 	this.keys = [];
 
+	this.player;
+
 	this.loadImages();
 	this.init();
 }
@@ -131,6 +133,7 @@ IsoMap.prototype.drawUI = function(m) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
 	ctx.beginPath();
+	// color of the square
 	ctx.strokeStyle = '#2f2';
 	
 	var coords = [self.mTileX + 0.5, self.mTileY - 0.5];
@@ -272,11 +275,16 @@ IsoMap.prototype.init = function() {
 	self.map = new Map(50, 50);
 	self.initMap(self.map);
 
+	self.player = new Sprite(self.character, [970,45, [128,240], 1, [0,1,2,3]);
+	self.player.gameWorld = self;
+
 	var mapArr = self.map;
 	
 	self.addLayer( new Layer($('body'), 'map', function(mapArr) { self.drawMap(mapArr)}, self.layers ) );
 	self.addLayer( new Layer($('body'), 'sprites', function(mapArr) { self.drawSprites(mapArr)}, self.layers ) );
 	self.addLayer( new Layer($('body'), 'ui', function(mapArr) { self.drawUI(mapArr) }, self.layers ) );
+	self.addLayer( new Layer($('body'), 'player', function() { self.player.update }, self.layers ) );
+
 	// self.addLayer( new Layer($('body'), 'ui', function(mapArr) { console.log("ehp") }, self.layers ) );
 	
 	// Attach controls to the topmost layer.
@@ -298,6 +306,9 @@ IsoMap.prototype.timedCount = function() {
 		self.layers[item].updateFunction(self.map);
 		self.layers[item].update = false;
 	}
+
+	// console.log("player layer", self.layers[self.layerNumToID['player']].ctx);
+	self.player.render( self.layers[self.layerNumToID['player']].ctx);	
 	
 	self.animate = false;
 	self.t = setTimeout(function() { self.timedCount() }, 20);

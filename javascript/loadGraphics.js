@@ -45,7 +45,10 @@ IsoMap.prototype.loadImages = function() {
 	}
 	self.cursor = new Image();
 	self.bg = new Image();
+	self.character = new Image(); 
 
 	self.cursor.src = 'images/cursor.png';
 	self.bg.src = 'images/clouds.jpg';
+
+	self.character.src ='images/character.png'; //128x240 vertical
 }
