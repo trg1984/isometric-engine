@@ -139,15 +139,21 @@ IsoMap.prototype.mmove = function(ev) {
 	if (self.mLeft) {
 		self.offsetX += ev._x - self.mouseX;
 		self.offsetY += ev._y - self.mouseY; 
+
+		self.player.playerX -= self.offsetX; 
+		self.player.playerY -= self.offsetY;
 	}
 	self.mouseX = ev._x;
 	self.mouseY = ev._y;
+
+
 	
 	var coords = self.isoConvert(self.mouseX, self.mouseY - self.tileHeight / 2);
 	coords[0] = Math.floor(coords[0]) + 0.5;
 	coords[1] = Math.floor(coords[1]) + 0.5;
 	self.mTileX = Math.floor(coords[0]);
 	self.mTileY = Math.floor(coords[1] + 1);
+
 	
 	// if (self.mLeft && !self.readOnly) {
 	// 	if (self.keys[67]) self.currentTile = self.map.cell[self.mTileY * self.map.width + self.mTileX];

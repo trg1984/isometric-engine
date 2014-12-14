@@ -275,9 +275,12 @@ IsoMap.prototype.init = function() {
 	self.map = new Map(50, 50);
 	self.initMap(self.map);
 
-	self.player = new Sprite(self.character, [970,45, [128,240], 1, [0,1,2,3]);
+	self.player = new Sprite(self.character, [0,0], [128,192], .25, [0,1,2,3]);
 	self.player.gameWorld = self;
-
+	self.player.playerX = 940; 
+	self.player.playerY = 349;
+	// self.player.targetX = 940; 
+	// self.player.targetY = 349;
 	var mapArr = self.map;
 	
 	self.addLayer( new Layer($('body'), 'map', function(mapArr) { self.drawMap(mapArr)}, self.layers ) );
@@ -308,7 +311,8 @@ IsoMap.prototype.timedCount = function() {
 	}
 
 	// console.log("player layer", self.layers[self.layerNumToID['player']].ctx);
-	self.player.render( self.layers[self.layerNumToID['player']].ctx);	
+	self.player.render( self.layers[self.layerNumToID['player']].ctx);
+	self.player.update(1);	
 	
 	self.animate = false;
 	self.t = setTimeout(function() { self.timedCount() }, 20);
