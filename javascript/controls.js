@@ -139,9 +139,6 @@ IsoMap.prototype.mmove = function(ev) {
 	if (self.mLeft) {
 		self.offsetX += ev._x - self.mouseX;
 		self.offsetY += ev._y - self.mouseY; 
-
-		self.player.playerX -= self.offsetX; 
-		self.player.playerY -= self.offsetY;
 	}
 	self.mouseX = ev._x;
 	self.mouseY = ev._y;
@@ -168,6 +165,7 @@ IsoMap.prototype.kDown = function(key) {
 	/* key down events here */
 	key = key.keyCode || key;
 	console.debug(key + ' down,');
+
 	self.keys[key] = true;
 }
 
@@ -175,7 +173,7 @@ IsoMap.prototype.kUp = function(key) {
 	var self = this;
 	/* key down events here */
 	key = key.keyCode || key;
-	console.debug(key + ' up,');
+	// console.debug(key + ' up,');
 	self.keys[key] = false;
 }
 
@@ -200,8 +198,8 @@ IsoMap.prototype.initControls = function(parent) {
 	parent.addEventListener("mouseout", self.buttonsUp.bind(self), false);
 
 	
-	parent.addEventListener('keydown',  self.kDown, false);
-	parent.addEventListener('keyup',  self.kUp, false);
+	parent.addEventListener('keydown',  self.kDown.bind(self), false);
+	parent.addEventListener('keyup',  self.kUp.bind(self), false);
 }
 
 IsoMap.prototype.buttonsUp = function() {

@@ -43,7 +43,18 @@ IsoMap = function(readOnly, callback) {
 
 
 
-IsoMap.prototype.isoConvert = function(x, y) {
+IsoMap.prototype.isoConvert = function(x0, y0) {
+
+	if (Array.isArray(x0)) {
+		var y = x0[1]; 
+		var x = x0[0];
+	}
+
+	else {
+		var x = x0; 
+		var y = y0;
+	}
+
 	var self = this;
 	var i = (x - self.offsetX) / self.tileWidth + (y - self.offsetY) / (self.tileHeight - 15);
 	var j = i - 2 * (x - self.offsetX) / self.tileWidth;
@@ -60,10 +71,24 @@ IsoMap.prototype.isoConvert = function(x, y) {
 	return [i, j];
 }
 
-IsoMap.prototype.xyToIso = function(i, j) {
+IsoMap.prototype.xyToIso = function(i0, j0) {
+
+
+	if (Array.isArray(i0)) {
+		var j = i0[1]; 
+		var i = i0[0];
+	}
+
+	else {
+		var i = i0; 
+		var j = j0;
+	}
+
+
 	var self = this; 
 	var x = (i - j) * self.tileWidth / 2 + self.offsetX;
 	var y = (i + j) * (self.tileHeight - 15) / 2 + self.offsetY;
+
 	return [x, y];
 }
 
@@ -275,12 +300,14 @@ IsoMap.prototype.init = function() {
 	self.map = new Map(50, 50);
 	self.initMap(self.map);
 
-	self.player = new Sprite(self.character, [0,0], [128,192], .25, [0,1,2,3]);
-	self.player.gameWorld = self;
-	self.player.playerX = 940; 
-	self.player.playerY = 349;
+	// self.player = new Sprite(self.character, [0,0], [128,192], .25, [0,1,2,3]);
+	// self.player.gameWorld = self;
+	// self.player.playerX = 940; 
+	// self.player.playerY = 349;
 	// self.player.targetX = 940; 
 	// self.player.targetY = 349;
+
+	self.player = new Player([33,33], self.character, self, [63, 160]);
 	var mapArr = self.map;
 	
 	self.addLayer( new Layer($('body'), 'map', function(mapArr) { self.drawMap(mapArr)}, self.layers ) );
@@ -311,8 +338,10 @@ IsoMap.prototype.timedCount = function() {
 	}
 
 	// console.log("player layer", self.layers[self.layerNumToID['player']].ctx);
-	self.player.render( self.layers[self.layerNumToID['player']].ctx);
-	self.player.update(1);	
+	var dt = (new Date()).getTime() / 1000 - self.lastFrame;
+	self.lastFrame = self.lastFrame = (new Date()).getTime() / 1000;
+	self.player.render(self.layers[self.layerNumToID['player']].ctx);
+	self.player.update(dt);	
 	
 	self.animate = false;
 	self.t = setTimeout(function() { self.timedCount() }, 20);
@@ -320,6 +349,7 @@ IsoMap.prototype.timedCount = function() {
 
 IsoMap.prototype.doTimer = function() {
 	var self = this;
+	self.lastFrame = (new Date()).getTime() / 1000;
 	if (!self.timer_is_on) {
 		self.timer_is_on = 1;
 		self.timedCount();
