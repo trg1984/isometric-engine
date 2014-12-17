@@ -136,11 +136,12 @@ IsoMap.prototype.drawMap = function(m) {
 		
 		for (var i = x0; i <= x1; ++i) {  
 			var iso = self.xyToIso(i, j);
+			var tile = m.cell[j * m.width + i];
 			if (
-				( typeof(self.img[ m.cell[j * m.width + i] ]) !== 'undefined' ) &&
-				self.img[ m.cell[j * m.width + i] ].isLoaded
+				( typeof(self.mapConfig[tile].img) !== 'undefined' ) &&
+				self.mapConfig[tile].img.isLoaded
 				) {
-				ctx.drawImage(self.img[ m.cell[j * m.width + i] ], iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
+				ctx.drawImage(self.mapConfig[tile].img , iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
 				// console.log("debug:",self.img[ m.cell[j * m.width + i] ], iso[0] || 0, iso[1] - m.z[j * m.width + i] || 0);
 				//ctx.fillText  ('(' + i + ', ' + j + ')', (i - j + 0.6) * tileWidth / 2 + offsetX, (i + j + 0.75) * (tileHeight - 15) / 2 + offsetY - m.z[j * m.width + i]);
 			}
@@ -197,6 +198,7 @@ IsoMap.prototype.setToolSize = function(n) { toolSize = n; }
 IsoMap.prototype.initMap = function(m) {
 
 	var self = this;
+
 	for (var i = 0; i < m.width; i++) {  
 		for (var j = 0; j < m.height; j++) {
 			var x0 = Math.round(Math.random() * 18);
@@ -206,6 +208,7 @@ IsoMap.prototype.initMap = function(m) {
 	}  
 	for (var i = 0; i < m.width; i++)   
 		for (var j = 0; j < m.height; j++) {
+						// map, x, y, type
 			self.setGraphics(m, i, j, 15);
 			m.z[j * m.width + i] = 0;
 	}
@@ -227,6 +230,13 @@ function Map(w, h) {
 	this.cell = new Array(this.width * this.height);
 	this.z = new Array(this.width * this.height);
 	this.cellType = new Array(this.width * this.height);
+}
+
+Map.prototype.getTileIndex = function(i, j) {
+	var self = this;
+	
+	return j * self.width + i
+
 }
 	
 IsoMap.prototype.setGraphics = function(map, x, y, value) {
@@ -275,7 +285,8 @@ IsoMap.prototype.resizeWindow = function() {
 IsoMap.prototype.init = function() {
 	var self = this;
 
-	console.log("init map", self.readOnly);
+	self.loadMapConfig();
+
 	if(self.readOnly) {
 		$('.palette').remove();
 	}
@@ -307,13 +318,13 @@ IsoMap.prototype.init = function() {
 	// self.player.targetX = 940; 
 	// self.player.targetY = 349;
 
-	self.player = new Player([33,33], self.character, self, [63, 160]);
+	self.player = new Player([33,33], self.character, self, [12, 130]);
 	var mapArr = self.map;
 	
 	self.addLayer( new Layer($('body'), 'map', function(mapArr) { self.drawMap(mapArr)}, self.layers ) );
+	self.addLayer( new Layer($('body'), 'player', function() { self.player.update }, self.layers ) );
 	self.addLayer( new Layer($('body'), 'sprites', function(mapArr) { self.drawSprites(mapArr)}, self.layers ) );
 	self.addLayer( new Layer($('body'), 'ui', function(mapArr) { self.drawUI(mapArr) }, self.layers ) );
-	self.addLayer( new Layer($('body'), 'player', function() { self.player.update }, self.layers ) );
 
 	// self.addLayer( new Layer($('body'), 'ui', function(mapArr) { console.log("ehp") }, self.layers ) );
 	

@@ -7,7 +7,6 @@ IsoMap.prototype.addLayer = function(layer) {
 }
 
 function Layer(parent, id, updateFunction, layers) {
-	console.log(updateFunction);
 	var self = this;
 
 	this.id = id;
