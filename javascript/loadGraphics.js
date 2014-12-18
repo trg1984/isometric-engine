@@ -476,11 +476,11 @@ IsoMap.prototype.loadMapConfig = function() {
  	32: { 
  		'img': this.img[32],
  		'walkable': true,
- 		'exitToNorth': true,
+ 		'exitToNorth': false,
  		'exitToSouth': true,
  		'exitToEast': true,
  		'exitToWest': true,
- 		'enterFromNorth': true,
+ 		'enterFromNorth': false,
  		'enterFromSouth': true,
  		'enterFromEast': true,
  		'enterFromWest': true
@@ -597,11 +597,11 @@ IsoMap.prototype.loadMapConfig = function() {
  		'img': this.img[41],
  		'walkable': true,
  		'exitToNorth': true,
- 		'exitToSouth': true,
+ 		'exitToSouth': false,
  		'exitToEast': true,
  		'exitToWest': true,
  		'enterFromNorth': true,
- 		'enterFromSouth': true,
+ 		'enterFromSouth': false,
  		'enterFromEast': true,
  		'enterFromWest': true
  	}, 

@@ -23,6 +23,10 @@ Player = function(pos, img, gameWorld, pivot) {
 
     this.facingTo = 'north';
 
+    this.history = [];
+
+    this.history.push({'pos': this.tile, 'type': this.gameWorld.map.getTileType(pos), 'direction': 'start' });
+
     // image sprite coords
 	this.sx = 0;
 	this.sy = 0;
@@ -32,11 +36,17 @@ Player = function(pos, img, gameWorld, pivot) {
 }
 
 Player.prototype.moveTo = function (pos, dir) {
+	var self = this;
+
 	this.walk = true;
 	this.direction = dir;
 	this.target.x = pos[0]; 
 	this.target.y = pos[1];
 
+	if(self.trackPlayer) {
+		this.history.push({'pos': pos, 'type': self.gameWorld.map.getTileType(pos), 'direction': dir});
+	}
+	
 	this.endEventFired = false;
 }
 
@@ -46,8 +56,8 @@ Player.prototype.moveNorth = function() {
 
 		var map = this.gameWorld.map;
 
-		var next = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1])-1 ) * map.width+(Math.floor(this.tile[0])) ] ];
-		var current = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1]) ) * map.width+(Math.floor(this.tile[0])) ] ];
+		var next = map.getTileConfig(this.tile, 'north');
+		var current = map.getTileConfig(this.tile);
 
 		if(next.walkable && next.enterFromSouth && current.exitToNorth ) {
 			this.moveTo([this.tile[0], this.tile[1] - 1], 'north');		
@@ -67,8 +77,8 @@ Player.prototype.moveSouth = function() {
 
 		var map = this.gameWorld.map;
 
-		var next = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1])+1 ) * map.width+(Math.floor(this.tile[0])) ] ];
-		var current = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1]) ) * map.width+(Math.floor(this.tile[0])) ] ];
+		var next = map.getTileConfig(this.tile, 'south');
+		var current = map.getTileConfig(this.tile);
 
 		if(next.walkable && next.enterFromNorth && current.exitToSouth) {
 			this.moveTo([this.tile[0], this.tile[1] + 1], 'south');		
@@ -87,8 +97,8 @@ Player.prototype.moveWest = function() {
 
 		var map = this.gameWorld.map;
 
-		var next = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1]) ) * map.width+(Math.floor(this.tile[0] -1)) ] ];
-		var current = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1]) ) * map.width+(Math.floor(this.tile[0])) ] ];
+		var next = map.getTileConfig(this.tile, 'west');
+		var current = map.getTileConfig(this.tile);
 
 		if(next.walkable && next.enterFromEast && current.exitToWest) {
 
@@ -107,8 +117,8 @@ Player.prototype.moveEast = function() {
 
 		var map = this.gameWorld.map;
 
-		var next = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1]) ) * map.width+(Math.floor(this.tile[0] +1)) ] ];
-		var current = this.gameWorld.mapConfig[ map.cell[ (Math.floor(this.tile[1]) ) * map.width+(Math.floor(this.tile[0])) ] ];
+		var next = map.getTileConfig(this.tile, 'east');
+		var current = map.getTileConfig(this.tile);
 
 		if(next.walkable && next.enterFromWest && current.exitToEast) {
 			this.moveTo([this.tile[0] + 1, this.tile[1]], 'east');	

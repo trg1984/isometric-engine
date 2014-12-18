@@ -1,6 +1,6 @@
 // Copyright to all of the code Rolf Lindén (rolind@utu.fi) 2011-2013. All rights reserved.
 
-IsoMap = function(readOnly, callback) {
+IsoMap = function(readOnly, trackPlayer, callback) {
 	// Initialize.
 	this.readOnly = readOnly || false;
 	this.map;
@@ -19,6 +19,8 @@ IsoMap = function(readOnly, callback) {
 	this.sprites;
 	this.animate = false;
 	this.eys = new Array(255);
+
+	this.trackPlayer = trackPlayer || false;
 
 	this.layers = [];
 	this.layerNumToID = {};
@@ -224,18 +226,71 @@ IsoMap.prototype.initMap = function(m) {
 	self.offsetY = window.innerHeight / 2 - m.height / 2 * self.tileHeight;
 }
 
-function Map(w, h) {
+function Map(w, h, config) {
 	this.width = w;
 	this.height = h;
+	this.config = config;
 	this.cell = new Array(this.width * this.height);
 	this.z = new Array(this.width * this.height);
 	this.cellType = new Array(this.width * this.height);
 }
 
-Map.prototype.getTileIndex = function(i, j) {
+Map.prototype.getTileIndex = function(i0, j0) {
 	var self = this;
-	
-	return j * self.width + i
+
+	if(Array.isArray(i0)) {
+		var i = i0[0]; 
+		var j = i0[1];
+	}
+	else {
+		var i = i0; 
+		var j = j0;
+	}
+
+	return (j * self.width) + i;
+}
+
+Map.prototype.getTileType = function(i0, j0) {
+	var self = this; 
+
+	if(Array.isArray(i0)) {
+		var i = i0[0]; 
+		var j = i0[1];
+	}
+	else {
+		var i = i0; 
+		var j = j0;
+	}
+
+	return self.cell[Math.floor(j) * self.width+(Math.floor(i))];
+}
+
+Map.prototype.getTileConfig = function(i0,j0, dir) {
+	var self = this;
+
+	if(Array.isArray(i0)) {
+		var i = i0[0];
+		var j = i0[1]; 
+
+		var dir = j0;
+	}
+
+	else {
+		var i = i0; 
+		var j = j0; 
+	}
+
+	switch (dir) {
+		case 'north': return self.config[ self.cell[ Math.floor(j-1 ) * self.width+(Math.floor(i)) ] ];
+			break;
+		case 'south': return self.config[ self.cell[ Math.floor(j+1 ) * self.width+(Math.floor(i)) ] ];
+			break;
+		case 'west':  return self.config[ self.cell[ Math.floor(j) * self.width+(Math.floor(i -1)) ] ]; 
+			break; 
+		case 'east': return self.config[ self.cell[ Math.floor(j) * self.width+(Math.floor(i +1)) ] ];
+			break; 
+		default :  return self.config[ self.cell[ Math.floor(j) * self.width+(Math.floor(i)) ] ];
+	}
 
 }
 	
@@ -308,7 +363,7 @@ IsoMap.prototype.init = function() {
 		});
 	}
 
-	self.map = new Map(50, 50);
+	self.map = new Map(50, 50, self.mapConfig);
 	self.initMap(self.map);
 
 	// self.player = new Sprite(self.character, [0,0], [128,192], .25, [0,1,2,3]);
@@ -319,6 +374,7 @@ IsoMap.prototype.init = function() {
 	// self.player.targetY = 349;
 
 	self.player = new Player([33,33], self.character, self, [12, 130]);
+	self.player.trackPlayer = self.trackPlayer;
 	var mapArr = self.map;
 	
 	self.addLayer( new Layer($('body'), 'map', function(mapArr) { self.drawMap(mapArr)}, self.layers ) );
